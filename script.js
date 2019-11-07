@@ -1,26 +1,51 @@
-fetch("https://www.reddit.com/r/aww/.json")
-  .then(res => res.json())
-  .then(data => {
-    for (const peoplesPhotos of data.data.children) {
-      const mainEl = document.querySelector("main");
-      let boxEl = document.createElement("div");
-      mainEl.appendChild(boxEl);
-      boxEl.classList.add("main");
-      const contentContainer = document.createElement("div");
-      contentContainer.classList.add("content");
-      contentContainer.appendChild(mainEl);
+async function getPosts() {
+  try {
+    const data = await fetch("https://www.reddit.com/r/aww/.json");
 
-      //   let photoContainerEl = document.createElement("div");
-      //   photoContainerEl.classList.add("photoContainer");
-      //   boxEl.appendChild(photoContainerEl);
+    if (data.ok) {
+      const json = await data.json();
 
-      let imgEl = document.createElement("img");
-      imgEl.setAttribute("src", peoplesPhotos.data.thumbnail);
-      imgEl.addEventListener("click", () => {
-        document.location.href =
-          "https://www.reddit.com" + peoplesPhotos.data.permalink;
+      const posts = json.data.children;
+
+      return posts.map(post => {
+        const data = post.data;
+
+        const { thumbnail, title, url } = data;
+
+        return {
+          thumbnail,
+          title,
+          url
+        };
       });
-      boxEl.appendChild(imgEl);
     }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function displayPosts() {
+  const posts = await getPosts();
+
+  const body = document.querySelector(".content");
+
+  posts.map(post => {
+    // Create post element
+    const postElement = document.createElement("a");
+    postElement.className = "post";
+    postElement.href = post.url;
+
+    const postImage = document.createElement("img");
+    postImage.src = post.thumbnail;
+
+    const postTitle = document.createElement("h2");
+    postTitle.textContent = post.title;
+
+    postElement.appendChild(postImage);
+    postElement.appendChild(postTitle);
+
+    body.appendChild(postElement);
   });
-//
+}
+
+displayPosts();
